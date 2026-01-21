@@ -50,7 +50,7 @@ Using intelligent rule-based logic, the system:
 ---
 
 ## 🔌 Circuit Diagram
-![Circuit Diagram](docs/circuit-diagram.png)
+![Circuit Diagram](docs/circuitdiagram.jpg)
 
 ---
 
