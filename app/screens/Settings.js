@@ -43,7 +43,7 @@ export default function Settings() {
     return;
   }
 
-  const userId = "user_" + Date.now();
+  const userId = "user_" + gripsense;
 
   await SecureStore.setItemAsync("emergencyNumber", number.trim());
   await SecureStore.setItemAsync("userId", userId);

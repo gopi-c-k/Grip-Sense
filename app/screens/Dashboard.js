@@ -14,7 +14,7 @@ import * as SecureStore from "expo-secure-store";
 import { triggerSMS } from "../utils/emergency";
 import { useTheme } from "../context/ThemeContext";
 
-const SOCKET_URL = "https://gripsense/getdata"; // 🔁 Replace with your actual endpoint
+const SOCKET_URL = "https://grip-sense.onrender.com"; // 🔁 Replace with your actual endpoint
 const COUNTDOWN_SECONDS = 10;
 
 let socket = null;
@@ -105,7 +105,8 @@ export default function Dashboard() {
     socket.on("disconnect", () => setConnected(false));
     socket.on("connect_error", () => setConnected(false));
 
-    socket.on("data", (incoming) => {
+    socket.on("app-data", (incoming) => {
+      console.log("Received data:", incoming);
       setData(incoming);
       setLastUpdated(new Date());
       if (incoming.riskLevel === "CRITICAL") {
@@ -212,7 +213,7 @@ export default function Dashboard() {
           theme={theme}
           icon="⚙️"
           label="Motor Speed"
-          value={data.motorSpeed ?? 0}
+          value={data.currentSpeed ?? 0}
           unit="rpm"
           color={theme.accent}
         />

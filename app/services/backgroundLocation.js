@@ -14,7 +14,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
 
   if (!userId) return;
 
-  await fetch("https://your-backend/update-location", {
+  await fetch("https://grip-sense.onrender.com/update-location", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
