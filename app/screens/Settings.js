@@ -43,12 +43,14 @@ export default function Settings() {
     return;
   }
 
-  const userId = "user_" + gripsense;
+  const userId = "user_" + "gripsense";
 
   await SecureStore.setItemAsync("emergencyNumber", number.trim());
   await SecureStore.setItemAsync("userId", userId);
 
-  await fetch("https://grip-sense.onrender.com//set-phone", {
+  console.log("Saved number and userId:", number.trim(), userId);
+
+  await fetch("https://grip-sense.onrender.com/set-phone", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

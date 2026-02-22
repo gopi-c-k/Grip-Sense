@@ -13,7 +13,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
   const userId = await SecureStore.getItemAsync("userId");
 
   if (!userId) return;
-
+  console.log("Background location update:", loc);
   await fetch("https://grip-sense.onrender.com/update-location", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
