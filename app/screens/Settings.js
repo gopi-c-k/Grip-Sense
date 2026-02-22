@@ -48,11 +48,10 @@ export default function Settings() {
   await SecureStore.setItemAsync("emergencyNumber", number.trim());
   await SecureStore.setItemAsync("userId", userId);
 
-  await fetch("https://your-backend/register-user", {
+  await fetch("https://grip-sense.onrender.com//set-phone", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      userId,
       phone: number.trim(),
     }),
   });

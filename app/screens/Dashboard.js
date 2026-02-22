@@ -101,12 +101,14 @@ export default function Dashboard() {
       reconnectionDelay: 2000,
     });
 
-    socket.on("connect", () => setConnected(true));
+    socket.on("connect", () => {
+      socket.emit("register", "app");
+      setConnected(true)
+    });
     socket.on("disconnect", () => setConnected(false));
     socket.on("connect_error", () => setConnected(false));
 
     socket.on("app-data", (incoming) => {
-      console.log("Received data:", incoming);
       setData(incoming);
       setLastUpdated(new Date());
       if (incoming.riskLevel === "CRITICAL") {
