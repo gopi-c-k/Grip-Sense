@@ -1,0 +1,177 @@
+# =========================
+
+# 🔐 Environment variables
+
+# =========================
+
+.env
+.env.*
+!.env.example
+
+# =========================
+
+# 📦 Node.js
+
+# =========================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# =========================
+
+# 🧠 Logs
+
+# =========================
+
+logs
+*.log
+
+# =========================
+
+# 🖥️ OS Files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# 🧪 Testing
+
+# =========================
+
+coverage/
+
+# =========================
+
+# ⚙️ Build Outputs
+
+# =========================
+
+dist/
+build/
+.tmp/
+.cache/
+
+# =========================
+
+# 🚀 React Native
+
+# =========================
+
+# Metro
+
+.expo/
+.expo-shared/
+.expo-cache/
+
+# React Native packager
+
+*.bundle
+
+# =========================
+
+# 🤖 Android
+
+# =========================
+
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/app/debug/
+android/app/release/
+*.keystore
+*.jks
+
+# =========================
+
+# 🍎 iOS
+
+# =========================
+
+ios/Pods/
+ios/build/
+ios/DerivedData/
+*.xcworkspace
+*.xcuserdata
+*.xcodeproj/project.xcworkspace
+
+# =========================
+
+# 🧩 VS Code
+
+# =========================
+
+.vscode/
+
+# =========================
+
+# 🔑 Secrets
+
+# =========================
+
+*.pem
+*.key
+*.p12
+*.mobileprovision
+
+# =========================
+
+# 🧰 Misc
+
+# =========================
+
+.idea/
+*.swp
+*.swo
+
+# =========================
+
+# 🧱 TypeScript
+
+# =========================
+
+*.tsbuildinfo
+
+# =========================
+
+# 📱 React Native specific
+
+# =========================
+
+# Watchman
+
+.watchmanconfig
+
+# Fastlane
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Buck
+
+buck-out/
+.buckd/
+
+# CocoaPods
+
+Podfile.lock
+
+# =========================
+
+# 🔥 Firebase / Google
+
+# =========================
+
+google-services.json
+GoogleService-Info.plist
