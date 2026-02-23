@@ -66,22 +66,35 @@ server.listen(PORT, () => {
 
 // SMS Function
 async function sendSMS(number, locationLink) {
-    console.log("Sending SMS to:", number, "with location:", locationLink);
-    try {
-        await axios.get("https://www.fast2sms.com/dev/bulkV2", {
-            params: {
-                authorization: process.env.FAST2SMS_API_KEY,
-                route: "q",
-                message: `🚨 FALL DETECTED!\nLocation: ${locationLink}`,
-                language: "english",
-                numbers: number,
-            },
-        });
 
-        console.log("SMS Sent");
-    } catch (err) {
-        console.log("SMS Error:", err.message);
-    }
+  const formattedNumber = number.startsWith("91")
+    ? number
+    : `91${number}`;
+
+  console.log("Sending SMS to:", formattedNumber, "with location:", locationLink);
+
+  try {
+    const res = await axios.post(
+      "https://www.fast2sms.com/dev/bulkV2",
+      {
+        route: "q",
+        message: `🚨 FALL DETECTED!\nLocation: ${locationLink}`,
+        language: "english",
+        numbers: formattedNumber
+      },
+      {
+        headers: {
+          authorization: process.env.FAST2SMS_API_KEY,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("SMS Sent:", res.data);
+
+  } catch (err) {
+    console.log("SMS Error:", err.response?.data || err.message);
+  }
 }
 
 app.post("/set-phone", (req, res) => {
