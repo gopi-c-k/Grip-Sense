@@ -8,13 +8,13 @@
     "splash": {
       "backgroundColor": "#4F46E5"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "GripSense needs your location to include it in emergency SMS alerts."
+        "NSLocationWhenInUseUsageDescription": "GripSense needs your location to include it in emergency SMS alerts.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "GripSense needs your location to include it in emergency SMS alerts.",
+        "UIBackgroundModes": ["location"]
       }
     },
     "android": {
@@ -25,19 +25,29 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
-        "SEND_SMS",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ]
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ],
+      "package": "com.gopi_c_k.gripsense"
     },
     "plugins": [
       [
         "expo-location",
         {
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "locationAlwaysAndWhenInUsePermission": "GripSense needs your location to include it in emergency SMS alerts.",
           "locationWhenInUsePermission": "GripSense needs your location to include it in emergency SMS alerts."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png"
+        }
+      ]
     ],
     "extra": {
       "eas": {

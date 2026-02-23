@@ -8,7 +8,9 @@ import {
   Animated,
   Vibration,
   Alert,
+  Dimensions,
 } from "react-native";
+import { LineChart } from "react-native-chart-kit";
 import io from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import { triggerSMS } from "../utils/emergency";
@@ -16,6 +18,7 @@ import { useTheme } from "../context/ThemeContext";
 
 const SOCKET_URL = "https://grip-sense.onrender.com"; // 🔁 Replace with your actual endpoint
 const COUNTDOWN_SECONDS = 10;
+const MAX_DATA_POINTS = 20; // Number of data points to show on graph
 
 let socket = null;
 
@@ -32,6 +35,12 @@ export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const [smsSent, setSmsSent] = useState(false);
+  
+  // Graph data states
+  const [fsr1History, setFsr1History] = useState([0]);
+  const [fsr2History, setFsr2History] = useState([0]);
+  const [motorSpeedHistory, setMotorSpeedHistory] = useState([0]);
+  
   const countdownRef = useRef(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const alertActive = useRef(false);
@@ -93,6 +102,28 @@ export default function Dashboard() {
     }, 1000);
   }, [startPulse, stopPulse]);
 
+  // Update graph history
+  const updateHistory = useCallback((newData) => {
+    const fsr1Value = typeof newData.fsr1 === 'number' ? newData.fsr1 : 0;
+    const fsr2Value = typeof newData.fsr2 === 'number' ? newData.fsr2 : 0;
+    const motorValue = typeof newData.currentSpeed === 'number' ? newData.currentSpeed : 0;
+
+    setFsr1History(prev => {
+      const updated = [...prev, fsr1Value];
+      return updated.length > MAX_DATA_POINTS ? updated.slice(1) : updated;
+    });
+
+    setFsr2History(prev => {
+      const updated = [...prev, fsr2Value];
+      return updated.length > MAX_DATA_POINTS ? updated.slice(1) : updated;
+    });
+
+    setMotorSpeedHistory(prev => {
+      const updated = [...prev, motorValue];
+      return updated.length > MAX_DATA_POINTS ? updated.slice(1) : updated;
+    });
+  }, []);
+
   useEffect(() => {
     socket = io(SOCKET_URL, {
       transports: ["websocket"],
@@ -103,7 +134,7 @@ export default function Dashboard() {
 
     socket.on("connect", () => {
       socket.emit("register", "app");
-      setConnected(true)
+      setConnected(true);
     });
     socket.on("disconnect", () => setConnected(false));
     socket.on("connect_error", () => setConnected(false));
@@ -111,6 +142,8 @@ export default function Dashboard() {
     socket.on("app-data", (incoming) => {
       setData(incoming);
       setLastUpdated(new Date());
+      updateHistory(incoming);
+      
       if (incoming.riskLevel === "CRITICAL") {
         startCountdown();
       } else {
@@ -122,7 +155,7 @@ export default function Dashboard() {
       socket.disconnect();
       clearInterval(countdownRef.current);
     };
-  }, [startCountdown, cancelAlert]);
+  }, [startCountdown, cancelAlert, updateHistory]);
 
   const getRiskColor = (level) => {
     switch (level) {
@@ -185,39 +218,55 @@ export default function Dashboard() {
         </Text>
       </View>
 
-      {/* Sensor Grid */}
-      <View style={s.grid}>
-        <MetricCard
+      {/* FSR Sensors with Graphs */}
+      <View style={s.graphSection}>
+        <Text style={s.sectionTitle}>Force Sensors (FSR)</Text>
+        
+        <GraphCard
           theme={theme}
           icon="👋"
           label="FSR Sensor 1"
           value={data.fsr1 ?? "--"}
           unit="N"
+          history={fsr1History}
           color={theme.accent}
         />
-        <MetricCard
+        
+        <GraphCard
           theme={theme}
           icon="✋"
           label="FSR Sensor 2"
           value={data.fsr2 ?? "--"}
           unit="N"
+          history={fsr2History}
           color={theme.accent}
         />
-        <MetricCard
-          theme={theme}
-          icon="🏃"
-          label="Motion"
-          value={data.motionStatus ?? "idle"}
-          color={getMotionColor(data.motionStatus)}
-          capitalize
-        />
-        <MetricCard
+      </View>
+
+      {/* Motor Speed with Graph */}
+      <View style={s.graphSection}>
+        <Text style={s.sectionTitle}>Motor Performance</Text>
+        
+        <GraphCard
           theme={theme}
           icon="⚙️"
           label="Motor Speed"
           value={data.currentSpeed ?? 0}
           unit="rpm"
+          history={motorSpeedHistory}
           color={theme.accent}
+        />
+      </View>
+
+      {/* Motion Status Card */}
+      <View style={s.motionSection}>
+        <MetricCard
+          theme={theme}
+          icon="🏃"
+          label="Motion Status"
+          value={data.motionStatus ?? "idle"}
+          color={getMotionColor(data.motionStatus)}
+          capitalize
         />
       </View>
 
@@ -239,7 +288,80 @@ export default function Dashboard() {
   );
 }
 
-function MetricCard({ theme, icon, label, value, unit, color, capitalize }) {
+function GraphCard({ theme, icon, label, value, unit, history, color }) {
+  const s = graphCardStyles(theme);
+  const screenWidth = Dimensions.get("window").width;
+  
+  const chartConfig = {
+    backgroundColor: theme.card,
+    backgroundGradientFrom: theme.card,
+    backgroundGradientTo: theme.card,
+    decimalPlaces: 1,
+    color: (opacity = 1) => color,
+    labelColor: (opacity = 1) => theme.subtext,
+    style: {
+      borderRadius: 16,
+    },
+    propsForDots: {
+      r: "4",
+      strokeWidth: "2",
+      stroke: color,
+    },
+    propsForBackgroundLines: {
+      strokeDasharray: "",
+      stroke: theme.dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+      strokeWidth: 1,
+    },
+  };
+
+  const chartData = {
+    labels: history.map((_, i) => (i % 5 === 0 ? "" : "")), // Empty labels for cleaner look
+    datasets: [
+      {
+        data: history.length > 0 ? history : [0],
+        color: (opacity = 1) => color,
+        strokeWidth: 2.5,
+      },
+    ],
+  };
+
+  return (
+    <View style={s.card}>
+      <View style={s.header}>
+        <View style={s.headerLeft}>
+          <Text style={s.icon}>{icon}</Text>
+          <View>
+            <Text style={s.label}>{label}</Text>
+            <Text style={[s.value, { color }]}>
+              {value}
+              {unit ? <Text style={s.unit}> {unit}</Text> : null}
+            </Text>
+          </View>
+        </View>
+      </View>
+      
+      <View style={s.chartContainer}>
+        <LineChart
+          data={chartData}
+          width={screenWidth - 60}
+          height={180}
+          chartConfig={chartConfig}
+          bezier
+          style={s.chart}
+          withInnerLines={true}
+          withOuterLines={false}
+          withVerticalLabels={false}
+          withHorizontalLabels={true}
+          withDots={true}
+          withShadow={false}
+          fromZero
+        />
+      </View>
+    </View>
+  );
+}
+
+function MetricCard({ theme, icon, label, value, color, capitalize }) {
   const s = cardStyles(theme);
   return (
     <View style={s.card}>
@@ -247,7 +369,6 @@ function MetricCard({ theme, icon, label, value, unit, color, capitalize }) {
       <Text style={s.label}>{label}</Text>
       <Text style={[s.value, { color, textTransform: capitalize ? "capitalize" : "none" }]}>
         {value}
-        {unit ? <Text style={s.unit}> {unit}</Text> : null}
       </Text>
     </View>
   );
@@ -304,16 +425,24 @@ const styles = (t) =>
       borderRadius: 16,
       padding: 20,
       alignItems: "center",
-      marginBottom: 20,
+      marginBottom: 24,
     },
     riskLabel: { fontSize: 11, fontWeight: "700", color: t.subtext, letterSpacing: 2 },
     riskValue: { fontSize: 36, fontWeight: "900", marginTop: 4 },
 
-    grid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      gap: 12,
+    graphSection: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: t.text,
+      marginBottom: 12,
+      letterSpacing: 0.5,
+    },
+
+    motionSection: {
+      marginBottom: 24,
     },
 
     updated: { textAlign: "center", color: t.subtext, fontSize: 12, marginTop: 20 },
@@ -327,13 +456,49 @@ const styles = (t) =>
     offlineText: { color: t.subtext, fontSize: 13, textAlign: "center" },
   });
 
-const cardStyles = (t) =>
+const graphCardStyles = (t) =>
   StyleSheet.create({
     card: {
       backgroundColor: t.card,
       borderRadius: 16,
       padding: 16,
-      width: "47%",
+      marginBottom: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: t.dark ? 0.4 : 0.06,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    icon: { fontSize: 32 },
+    label: { fontSize: 12, color: t.subtext, fontWeight: "600", letterSpacing: 0.5 },
+    value: { fontSize: 28, fontWeight: "800", marginTop: 2 },
+    unit: { fontSize: 16, fontWeight: "500" },
+    chartContainer: {
+      alignItems: "center",
+      marginTop: 8,
+    },
+    chart: {
+      borderRadius: 12,
+    },
+  });
+
+const cardStyles = (t) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: t.card,
+      borderRadius: 16,
+      padding: 20,
       alignItems: "center",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
@@ -341,8 +506,7 @@ const cardStyles = (t) =>
       shadowRadius: 8,
       elevation: 3,
     },
-    icon: { fontSize: 28, marginBottom: 8 },
-    label: { fontSize: 11, color: t.subtext, fontWeight: "600", letterSpacing: 0.5 },
-    value: { fontSize: 22, fontWeight: "800", marginTop: 4 },
-    unit: { fontSize: 13, fontWeight: "500" },
+    icon: { fontSize: 32, marginBottom: 12 },
+    label: { fontSize: 12, color: t.subtext, fontWeight: "600", letterSpacing: 0.5 },
+    value: { fontSize: 26, fontWeight: "800", marginTop: 6 },
   });

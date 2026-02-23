@@ -3,9 +3,12 @@ import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text } from "react-native";
+import { useEffect } from "react";
 import Dashboard from "./screens/Dashboard";
 import Settings from "./screens/Settings";
 import ThemeProvider, { useTheme } from "./context/ThemeContext";
+import "./services/backgroundLocation";
+import { startBackgroundTracking } from "./services/backgroundLocation";
 
 const Tab = createBottomTabNavigator();
 
@@ -67,7 +70,19 @@ function AppNavigator() {
   );
 }
 
+
 export default function App() {
+  useEffect(() => {
+    const initTracking = async () => {
+      console.log("Initializing tracking...");
+      const result = await startBackgroundTracking();
+      console.log("Tracking initialization result:", result);
+    };
+
+    // Add a small delay to ensure everything is loaded
+    setTimeout(initTracking, 1000);
+  }, []);
+
   return (
     <ThemeProvider>
       <AppNavigator />

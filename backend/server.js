@@ -46,7 +46,7 @@ io.on("connection", (socket) => {
                 const { lat, lng } = lastLocation;
                 const link = `https://maps.google.com/?q=${lat},${lng}`;
 
-                await sendSMS(link);
+                await sendSMS(emergencyPhone, link);
 
             } else {
                 console.log("Missing phone or location");
