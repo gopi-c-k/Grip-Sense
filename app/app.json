@@ -25,7 +25,9 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
-        "SEND_SMS"
+        "SEND_SMS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [
@@ -36,6 +38,12 @@
         }
       ],
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dad38797-1272-4d68-b7c9-ccb9dc4ba211"
+      }
+    },
+    "owner": "gopi_c_k"
   }
 }

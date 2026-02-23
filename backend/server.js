@@ -66,6 +66,7 @@ server.listen(PORT, () => {
 
 // SMS Function
 async function sendSMS(number, locationLink) {
+    console.log("Sending SMS to:", number, "with location:", locationLink);
     try {
         await axios.get("https://www.fast2sms.com/dev/bulkV2", {
             params: {
